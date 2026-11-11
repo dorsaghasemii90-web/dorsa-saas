@@ -1,0 +1,11 @@
+{
+  "title": "dorsa",
+  "description": "Transform fabric and surface designs with AI-powered tools for color analysis, mockups, and project management, tailored for artists and designers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
