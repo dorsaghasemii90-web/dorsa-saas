@@ -370,7 +370,7 @@ function Botanical({
     </svg>
   )
 }
-function ProjectArt({ kind, colors }: { kind: string colors?: string[] }) {
+function ProjectArt({ kind, colors }: { kind: string; colors?: string[] }) {
   return (
     <div className={`project-art art-${kind}`}>
       {kind === "bag" ? (
@@ -444,7 +444,9 @@ export default function App() {
   const [before, setBefore] = useState(false)
   const [voiceText, setVoiceText] = useState("")
   const [voiceReply, setVoiceReply] = useState("")
-  const [signedIn, setSignedIn] = useState(true)
+  const [signedIn, setSignedIn] = useState(false)
+  const [demoName, setDemoName] = useSavedState("dorsaart-demo-name", "")
+  const [demoEmail, setDemoEmail] = useSavedState("dorsaart-demo-email", "")
   const [signup, setSignup] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
@@ -482,7 +484,7 @@ export default function App() {
   const visibleProjects = projects.filter(
     (p) => p.name.includes(search) && (tab !== "علاقه‌مندی‌ها" || p.favorite),
   )
-  const navItems: { label: string icon: IconName tag?: string }[] = [
+  const navItems: { label: string; icon: IconName; tag?: string }[] = [
     { label: "داشبورد", icon: "grid" },
     { label: "پروژه‌های من", icon: "folder" },
     { label: "رنگ‌های من", icon: "palette" },
@@ -576,17 +578,17 @@ export default function App() {
             <span className="online-dot" />
           </button>
           <div className="sidebar-profile">
-            <div className="avatar">ن</div>
+            <div className="avatar">{signedIn ? (demoName[0] || "ک") : "م"}</div>
             <div>
-              <b>{signedIn ? "نگار محمدی" : "کاربر مهمان"}</b>
+              <b>{signedIn ? demoName : "کاربر مهمان"}</b>
               <small>
                 حساب شخصی <span>FREE</span>
               </small>
             </div>
             <button
               className="icon-button"
-              aria-label="ورود به حساب"
-              onClick={() => setModal("ورود")}
+              aria-label="حساب کاربری"
+              onClick={() => setModal(signedIn ? "پروفایل نمایشی" : "ورود")}
             >
               <Icon name="logout" size={18} />
             </button>
@@ -639,7 +641,7 @@ export default function App() {
             <span className="header-divider" />
             <button
               className="avatar avatar-small"
-              onClick={() => setModal("ورود")}
+              onClick={() => setModal(signedIn ? "پروفایل نمایشی" : "ورود")}
               aria-label="حساب کاربری"
             >
               ن
@@ -655,7 +657,7 @@ export default function App() {
                     <span className="online-dot" /> وقتِ خلق یک چیز تازه‌ست
                   </div>
                   <h1>
-                    سلام نگار، به دنیای رنگ‌ها خوش اومدی{" "}
+                    سلام {signedIn ? demoName : "دوست هنرمند"}، به دنیای رنگ‌ها خوش اومدی{" "}
                     <span className="hello-spark">✦</span>
                   </h1>
                   <p>از اولین جرقه‌ی ایده تا آخرین ضربه‌ی قلم‌مو، کنارت هستیم.</p>
@@ -1851,8 +1853,13 @@ export default function App() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
+                  const form = new FormData(e.currentTarget)
+                  const email = String(form.get("email") || "").trim()
+                  const name = String(form.get("name") || "").trim() || email.split("@")[0]
+                  setDemoName(name)
+                  setDemoEmail(email)
                   setSignedIn(true)
-                  setModal(null)
+                  setModal("پروفایل نمایشی")
                   notify("به نسخه نمایشی استودیوی خود خوش آمدید")
                 }}
               >
@@ -1860,25 +1867,17 @@ export default function App() {
                 {signup && (
                   <label className="field-label">
                     نام و نام خانوادگی
-                    <input required placeholder="نام شما" />
+                    <input name="name" required placeholder="نام شما" />
                   </label>
                 )}
                 <label className="field-label">
                   ایمیل
                   <input
                     type="email"
+                    name="email"
                     required
                     placeholder="you@example.com"
                     dir="ltr"
-                  />
-                </label>
-                <label className="field-label">
-                  رمز عبور
-                  <input
-                    type="password"
-                    minLength={6}
-                    required
-                    placeholder="حداقل ۶ کاراکتر"
                   />
                 </label>
                 <button className="button primary full-width" type="submit">
@@ -1894,9 +1893,19 @@ export default function App() {
                     : "حساب ندارید؟ رایگان ثبت‌نام کنید"}
                 </button>
                 <p className="muted small-note">
-                  ورود نمایشی است و اطلاعات به سرور ارسال نمی‌شود.
+                  این فقط یک تمرین است: حساب واقعی ساخته نمی‌شود و نام و ایمیل فقط در همین مرورگر ذخیره می‌شوند.
                 </p>
               </form>
+            )}
+            {modal === "پروفایل نمایشی" && (
+              <div>
+                <p className="muted">این پروفایل فقط برای تمرین در همین مرورگر نمایش داده می‌شود.</p>
+                <p><strong>نام:</strong> {demoName}</p>
+                <p><strong>ایمیل:</strong> <span dir="ltr">{demoEmail}</span></p>
+                <p><strong>اشتراک:</strong> رایگان نمایشی</p>
+                <button className="button secondary full-width" onClick={() => { setModal(null); navigate("اشتراک و پلن‌ها") }}>مشاهده پلن‌ها</button>
+                <button className="text-button auth-toggle" onClick={() => { setSignedIn(false); setModal(null); notify("از پروفایل نمایشی خارج شدید") }}>خروج از پروفایل نمایشی</button>
+              </div>
             )}
             {modal === "افزودن رنگ" && (
               <form
